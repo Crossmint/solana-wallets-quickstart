@@ -25,7 +25,7 @@ export function SampleComponent() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Image src="/sol.svg" alt="Solana" width={24} height={24} />
-          Create a wallet
+          EXAMPLE COMPONENT
         </CardTitle>
         <CardDescription>Create a wallet to start using Solana</CardDescription>
       </CardHeader>
