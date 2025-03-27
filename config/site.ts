@@ -1,15 +1,11 @@
-console.warn(
-  "REMINDER: Update the '/config/site.ts' file with your project's specific details."
-);
-
 export const siteConfig = {
-  title: "Basic title of the quickstart",
-  description: "Basic description of the quickstart",
+  title: "SSW Quickstart",
+  description: "Solana Smart Wallet Quickstart",
   footer: {
     links: [
       {
         // View code
-        href: "https://docs.crossmint.com",
+        href: "https://github.com/Crossmint/solana-smart-wallet-quickstart",
       },
       {
         // See all quickstarts

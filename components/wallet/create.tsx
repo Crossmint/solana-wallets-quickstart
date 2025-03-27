@@ -15,26 +15,28 @@ import {
 } from "@/components/ui/card";
 import { Copy } from "lucide-react";
 
-// Note: this component is a sample component that's used as a template for creating new components.
-export function SampleComponent() {
+export function CreateWallet() {
   const { logout, login } = useAuth();
-  const { getOrCreateWallet, wallet } = useWallet();
+  const { wallet } = useWallet();
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Image src="/sol.svg" alt="Solana" width={24} height={24} />
-          EXAMPLE COMPONENT
+          Create a wallet
         </CardTitle>
         <CardDescription>Create a wallet to start using Solana</CardDescription>
       </CardHeader>
       <CardContent>
-        <form>
-          <div className="grid w-full items-center gap-4">
-            {wallet != null && (
+        <div className="grid w-full items-center gap-4">
+          {wallet != null && (
+            <div>
+              <p className="text-sm text-muted-foreground">Address</p>
               <div className="flex items-center gap-2 w-full">
-                <div className="flex-1 truncate">{wallet?.getAddress()}</div>
+                <div className="flex-1 w-full break-all">
+                  {wallet?.getAddress()}
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -46,16 +48,17 @@ export function SampleComponent() {
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
-            )}
-          </div>
-        </form>
+            </div>
+          )}
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button
-          variant={wallet != null ? "destructive" : "default"}
+          className="w-full"
+          variant={"outline"}
           onClick={wallet != null ? logout : login}
         >
-          {wallet != null ? "Logout" : "Login"}
+          {wallet != null ? "Log out" : "Log in"}
         </Button>
       </CardFooter>
     </Card>
