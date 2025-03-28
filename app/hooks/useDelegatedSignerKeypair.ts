@@ -9,7 +9,12 @@ interface StoredKeypair {
 }
 
 export function useDelegatedSignerKeypair() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [onError, setOnError] = useState<string | null>(null);
   const [delegatedSignerPubkey, setDelegatedSignerPubkey] = useState<
+    string | null
+  >(null);
+  const [delegateSignerTxnLink, setDelegateSignerTxnLink] = useState<
     string | null
   >(null);
 
@@ -42,5 +47,11 @@ export function useDelegatedSignerKeypair() {
     delegatedSignerPubkey,
     generateKeypair,
     clearKeypair,
+    setDelegateSignerTxnLink,
+    delegateSignerTxnLink,
+    isLoading,
+    setIsLoading,
+    onError,
+    setOnError,
   };
 }

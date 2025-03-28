@@ -108,7 +108,14 @@ export function TransferFunds() {
             </div>
           </div>
         </div>
-        <CardFooter className="p-0 flex mt-4 w-full">
+        <CardFooter className="p-0 flex flex-col gap-2 mt-3 w-full">
+          {txnLink && (
+            <span className="text-sm text-gray-500">
+              <a href={txnLink} target="_blank" rel="noopener noreferrer">
+                View on Solscan
+              </a>
+            </span>
+          )}
           <Button
             className="w-full"
             onClick={handleOnTransfer}
@@ -116,11 +123,6 @@ export function TransferFunds() {
           >
             {isLoading ? "Transferring..." : "Transfer"}
           </Button>
-          {txnLink && (
-            <a href={txnLink} target="_blank" rel="noopener noreferrer">
-              View on Solscan
-            </a>
-          )}
         </CardFooter>
       </AuthenticatedCardContent>
     </Card>

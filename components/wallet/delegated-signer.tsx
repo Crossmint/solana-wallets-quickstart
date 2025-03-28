@@ -18,8 +18,17 @@ export function DelegatedSigner() {
   const { user } = useAuth();
   const { wallet, type } = useWallet();
   const [delegateAddressInput, setDelegateAddressInput] = useState("");
-  const { clearKeypair, delegatedSignerPubkey, generateKeypair } =
-    useDelegatedSignerKeypair();
+  const {
+    clearKeypair,
+    delegatedSignerPubkey,
+    generateKeypair,
+    setIsLoading,
+    isLoading,
+    delegateSignerTxnLink,
+    setDelegateSignerTxnLink,
+    onError,
+    setOnError,
+  } = useDelegatedSignerKeypair();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -42,11 +51,22 @@ export function DelegatedSigner() {
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await wallet.addDelegatedSigner(delegatedSignerPubkey);
-      console.log({ response });
+      if (response.type === "solana-fireblocks-custodial") {
+        setDelegateSignerTxnLink(
+          `https://solscan.io/tx/${response.transaction.onChain.txId}?cluster=devnet`
+        );
+      }
     } catch (err) {
-      console.error("Something went wrong ", err);
+      if (err instanceof Error) {
+        setOnError(err.message);
+      } else {
+        setOnError("Something went wrong adding delegated signer");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,8 +98,35 @@ export function DelegatedSigner() {
         ) : (
           <Button onClick={generateKeypair}>1. Generate Keypair</Button>
         )}
+
+        {onError && (
+          <div className="p-2 bg-red-100 border border-red-300 rounded-md text-xs">
+            <p className="font-semibold">Error: {onError}</p>
+          </div>
+        )}
+
         {delegatedSignerPubkey != null && (
-          <>
+          <div className="flex flex-col gap-2 w-full">
+            {delegateSignerTxnLink && (
+              <div className="flex flex-col gap-2 w-full">
+                <div className="p-2 bg-yellow-100 border border-yellow-300 rounded-md text-xs">
+                  <p className="font-semibold">
+                    Great! You have created a delegated signer. Now you can
+                    transfer funds to it using the "Transfer funds" card to the
+                    left.
+                  </p>
+                </div>
+                <span className="text-sm text-gray-500">
+                  <a
+                    href={delegateSignerTxnLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on Solscan
+                  </a>
+                </span>
+              </div>
+            )}
             <div className="flex flex-col gap-2 w-full">
               <Label>Delegate Address</Label>
               <Input
@@ -91,11 +138,11 @@ export function DelegatedSigner() {
             <Button
               className="w-full"
               onClick={handleDelegateKey}
-              disabled={!delegateAddressInput}
+              disabled={!delegateAddressInput || isLoading}
             >
-              Create Delegate Signer
+              {isLoading ? "Creating..." : "Create Delegate Signer"}
             </Button>
-          </>
+          </div>
         )}
       </AuthenticatedCardContent>
     </Card>

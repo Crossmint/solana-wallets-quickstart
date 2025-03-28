@@ -14,7 +14,6 @@ import {
 
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
-/* TODO: Soon to be replaced by the Crossmint SDK */
 export async function createTokenTransferTransaction(
   from: string,
   to: string,
