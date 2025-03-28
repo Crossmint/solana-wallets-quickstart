@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -21,12 +20,15 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ChevronDown } from "lucide-react";
 import { createTokenTransferTransaction } from "@/lib/transaction/createTransaction";
+import { AuthenticatedCardContent } from "../ui/crossmint/auth-card-content";
 
 export function TransferFunds() {
   const { wallet, type } = useWallet();
-  const [token, setToken] = useState<"sol" | "usdc" | null>(null);
+  const [token, setToken] = useState<"usdc" | null>(null);
   const [recipient, setRecipient] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const [txnLink, setTxnLink] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleOnTransfer() {
     if (
@@ -38,27 +40,25 @@ export function TransferFunds() {
     ) {
       return;
     }
-
+    setIsLoading(true);
     try {
-      const tokenMint =
-        token === "sol"
-          ? "not_supported_yet"
-          : "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
       const txn = await createTokenTransferTransaction(
         wallet.getAddress(),
         recipient,
-        tokenMint,
+        "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // USDC on devnet
         amount
       );
       console.log({ txn });
 
-      const response = await wallet.sendTransaction({
+      const signature = await wallet.sendTransaction({
         transaction: txn,
       });
 
-      console.log({ response });
+      setTxnLink(`https://solscan.io/tx/${signature}?cluster=devnet`);
     } catch (err) {
       console.error("Something went wrong", err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -70,7 +70,7 @@ export function TransferFunds() {
           Send funds to another wallet
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <AuthenticatedCardContent>
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-2">
             <Label className="self-start">Recipient wallet</Label>
@@ -92,9 +92,6 @@ export function TransferFunds() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setToken("sol")}>
-                    Solana
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setToken("usdc")}>
                     USDC
                   </DropdownMenuItem>
@@ -111,12 +108,21 @@ export function TransferFunds() {
             </div>
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="flex">
-        <Button className="w-full" onClick={handleOnTransfer}>
-          Transfer
-        </Button>
-      </CardFooter>
+        <CardFooter className="p-0 flex mt-4 w-full">
+          <Button
+            className="w-full"
+            onClick={handleOnTransfer}
+            disabled={isLoading}
+          >
+            {isLoading ? "Transferring..." : "Transfer"}
+          </Button>
+          {txnLink && (
+            <a href={txnLink} target="_blank" rel="noopener noreferrer">
+              View on Solscan
+            </a>
+          )}
+        </CardFooter>
+      </AuthenticatedCardContent>
     </Card>
   );
 }

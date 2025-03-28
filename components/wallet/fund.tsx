@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
 import { PopupWindow } from "@crossmint/client-sdk-window";
+import { ChevronDown } from "lucide-react";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Label } from "../ui/label";
-import { ChevronDown } from "lucide-react";
+import { AuthenticatedCardContent } from "../ui/crossmint/auth-card-content";
 
 export function FundWallet() {
   const { wallet } = useWallet();
@@ -51,7 +51,7 @@ export function FundWallet() {
           Top up wallet
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <AuthenticatedCardContent>
         <div className="flex w-full items-center gap-4">
           <Label>Token</Label>
           <DropdownMenu>
@@ -71,12 +71,12 @@ export function FundWallet() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardContent>
-      <CardFooter className="flex">
-        <Button className="w-full" onClick={handleOnFund}>
-          Fund wallet
-        </Button>
-      </CardFooter>
+        <CardFooter className="p-0 flex mt-4 w-full">
+          <Button className="w-full" onClick={handleOnFund}>
+            Fund wallet
+          </Button>
+        </CardFooter>
+      </AuthenticatedCardContent>
     </Card>
   );
 }

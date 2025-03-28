@@ -7,13 +7,13 @@ import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
+import { AuthenticatedCardContent } from "../ui/crossmint/auth-card-content";
 
 export function WalletBalance() {
   const { logout } = useAuth();
@@ -47,7 +47,7 @@ export function WalletBalance() {
             Number(formatBalance(solBalance, 9))}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <AuthenticatedCardContent>
         <div className="flex flex-col gap-2">
           <div className="flex justify-between">
             <div className="flex items-center gap-2">
@@ -69,14 +69,14 @@ export function WalletBalance() {
             </div>
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        {wallet != null && (
-          <Button className="w-full" variant={"outline"} onClick={logout}>
-            {"Log out "}
-          </Button>
-        )}
-      </CardFooter>
+        <CardFooter className="p-0 flex mt-4 w-full">
+          {wallet != null && (
+            <Button className="w-full" variant={"outline"} onClick={logout}>
+              {"Log out "}
+            </Button>
+          )}
+        </CardFooter>
+      </AuthenticatedCardContent>
     </Card>
   );
 }

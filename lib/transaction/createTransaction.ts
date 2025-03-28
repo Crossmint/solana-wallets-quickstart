@@ -29,11 +29,13 @@ export async function createTokenTransferTransaction(
   // Get associated token accounts for both addresses
   const senderTokenAccount = await getAssociatedTokenAddress(
     tokenMintPublicKey,
-    fromPublicKey
+    fromPublicKey,
+    true
   );
   const recipientTokenAccount = await getAssociatedTokenAddress(
     tokenMintPublicKey,
-    toPublicKey
+    toPublicKey,
+    true
   );
   console.log("Sender token account:", senderTokenAccount);
   console.log("Recipient token account:", recipientTokenAccount);
