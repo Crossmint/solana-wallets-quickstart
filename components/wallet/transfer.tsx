@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@crossmint/client-sdk-react-ui";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -20,10 +20,11 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ChevronDown } from "lucide-react";
 import { createTokenTransferTransaction } from "@/lib/transaction/createTransaction";
-import { AuthenticatedCardContent } from "../ui/crossmint/auth-card-content";
+import { AuthenticatedCard } from "../ui/crossmint/auth-card";
+import { useCrossmint } from "../providers/crossmint";
 
 export function TransferFunds() {
-  const { wallet, type } = useWallet();
+  const { wallet } = useCrossmint();
   const [token, setToken] = useState<"usdc" | null>(null);
   const [recipient, setRecipient] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -34,7 +35,6 @@ export function TransferFunds() {
     if (
       wallet == null ||
       token == null ||
-      type !== "solana-smart-wallet" ||
       recipient == null ||
       amount == null
     ) {
@@ -50,11 +50,11 @@ export function TransferFunds() {
       );
       console.log({ txn });
 
-      const signature = await wallet.sendTransaction({
-        transaction: txn,
-      });
+      // const signature = await wallet.sendTransaction({
+      //   transaction: txn,
+      // });
 
-      setTxnLink(`https://solscan.io/tx/${signature}?cluster=devnet`);
+      // setTxnLink(`https://solscan.io/tx/${signature}?cluster=devnet`);
     } catch (err) {
       console.error("Something went wrong", err);
     } finally {
@@ -63,14 +63,14 @@ export function TransferFunds() {
   }
 
   return (
-    <Card>
+    <AuthenticatedCard>
       <CardHeader>
         <CardTitle>Transfer funds</CardTitle>
         <CardDescription className="flex items-center gap-2">
           Send funds to another wallet
         </CardDescription>
       </CardHeader>
-      <AuthenticatedCardContent>
+      <CardContent>
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-2">
             <Label className="self-start">Recipient wallet</Label>
@@ -124,7 +124,7 @@ export function TransferFunds() {
             {isLoading ? "Transferring..." : "Transfer"}
           </Button>
         </CardFooter>
-      </AuthenticatedCardContent>
-    </Card>
+      </CardContent>
+    </AuthenticatedCard>
   );
 }

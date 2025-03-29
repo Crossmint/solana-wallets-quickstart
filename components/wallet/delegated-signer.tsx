@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
 import {
-  Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -12,11 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "../ui/label";
 import { useDelegatedSignerKeypair } from "@/app/hooks/useDelegatedSignerKeypair";
-import { AuthenticatedCardContent } from "../ui/crossmint/auth-card-content";
+import { AuthenticatedCard } from "../ui/crossmint/auth-card";
+import { useCrossmint } from "../providers/crossmint";
 
 export function DelegatedSigner() {
-  const { user } = useAuth();
-  const { wallet, type } = useWallet();
+  const { wallet } = useCrossmint();
   const [delegateAddressInput, setDelegateAddressInput] = useState("");
   const {
     clearKeypair,
@@ -44,13 +43,7 @@ export function DelegatedSigner() {
     }
   }, [delegatedSignerPubkey]);
 
-  console.log({ wallet, user });
-
   const handleDelegateKey = async () => {
-    if (type !== "solana-smart-wallet" || !delegatedSignerPubkey) {
-      return;
-    }
-
     setIsLoading(true);
     try {
       const response = await wallet.addDelegatedSigner(delegatedSignerPubkey);
@@ -71,14 +64,14 @@ export function DelegatedSigner() {
   };
 
   return (
-    <Card className="gap-3">
+    <AuthenticatedCard className="gap-3">
       <CardHeader>
         <CardTitle>Delegated Signer</CardTitle>
         <CardDescription>
           Create a delegated signer for your wallet
         </CardDescription>
       </CardHeader>
-      <AuthenticatedCardContent className="space-y-4">
+      <CardContent className="space-y-4">
         {delegatedSignerPubkey != null ? (
           <div className="p-2 bg-yellow-100 border border-yellow-300 rounded-md text-xs">
             <p className="font-semibold">
@@ -144,7 +137,7 @@ export function DelegatedSigner() {
             </Button>
           </div>
         )}
-      </AuthenticatedCardContent>
-    </Card>
+      </CardContent>
+    </AuthenticatedCard>
   );
 }
