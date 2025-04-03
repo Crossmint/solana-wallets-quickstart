@@ -76,7 +76,7 @@ export function TransferFunds() {
 
     try {
       setIsLoading(true);
-      const buildTransaction = (token: string) => {
+      const buildTransaction = async () => {
         if (token === "sol") {
           return createSolTransferTransaction(
             wallet.getAddress(),
@@ -97,9 +97,9 @@ export function TransferFunds() {
           amount
         );
       };
-      const txn = await buildTransaction(token);
+      const txn = await buildTransaction();
 
-      console.log({ txn });
+      // console.log({ txn });
 
       const txHash = await wallet.sendTransaction({
         transaction: txn,
