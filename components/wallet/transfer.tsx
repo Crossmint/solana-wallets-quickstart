@@ -38,10 +38,8 @@ export function TransferFunds() {
   const validateSolanaAddress = (address: string) => {
     try {
       new PublicKey(address);
-      setAddressError(null);
       return true;
     } catch (error) {
-      setAddressError("Invalid Solana address");
       return false;
     }
   };
@@ -49,11 +47,8 @@ export function TransferFunds() {
   const handleRecipientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
     setRecipient(address);
-    if (address && address.length > 30) {
-      validateSolanaAddress(address);
-    } else if (address) {
-      setAddressError("Address too short");
-    } else {
+    // Clear any error when the user types
+    if (addressError) {
       setAddressError(null);
     }
   };
@@ -69,8 +64,8 @@ export function TransferFunds() {
       return;
     }
 
-    // Final validation before sending
     if (recipient && !validateSolanaAddress(recipient)) {
+      setAddressError("Invalid Solana address");
       return;
     }
 
