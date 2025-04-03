@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 
+// TODO: Replace with the actual price, fetched from an API
+const SOL_TO_USD_TMP = 114.21;
+
 export function WalletBalance() {
   const { logout } = useAuth();
   const { wallet, type } = useWallet();
@@ -45,7 +48,7 @@ export function WalletBalance() {
         <CardDescription className="flex items-center gap-2">
           $
           {Number(formatBalance(usdcBalance, 6)) +
-            Number(formatBalance(solBalance, 9))}
+            Number(formatBalance(solBalance, 9)) * SOL_TO_USD_TMP}
         </CardDescription>
       </CardHeader>
       <CardContent>
