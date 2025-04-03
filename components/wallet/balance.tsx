@@ -26,6 +26,7 @@ export function WalletBalance() {
       return (await wallet.balances(["sol", "usdc"])) || [];
     },
     enabled: wallet != null,
+    refetchInterval: 1000,
   });
 
   const formatBalance = (balance: string, decimals: number) => {

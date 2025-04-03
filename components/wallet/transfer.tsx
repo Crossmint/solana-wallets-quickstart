@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
+import { PublicKey } from "@solana/web3.js";
 import {
   Card,
   CardContent,
@@ -20,13 +21,42 @@ import {
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ChevronDown } from "lucide-react";
-import { createTokenTransferTransaction } from "@/lib/transaction/createTransaction";
+import { toast } from "sonner";
+import {
+  createSolTransferTransaction,
+  createTokenTransferTransaction,
+} from "@/lib/transaction/createTransaction";
 
 export function TransferFunds() {
   const { wallet, type } = useWallet();
   const [token, setToken] = useState<"sol" | "usdc" | null>(null);
   const [recipient, setRecipient] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  const validateSolanaAddress = (address: string) => {
+    try {
+      new PublicKey(address);
+      setAddressError(null);
+      return true;
+    } catch (error) {
+      setAddressError("Invalid Solana address");
+      return false;
+    }
+  };
+
+  const handleRecipientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setRecipient(address);
+    if (address && address.length > 30) {
+      validateSolanaAddress(address);
+    } else if (address) {
+      setAddressError("Address too short");
+    } else {
+      setAddressError(null);
+    }
+  };
 
   async function handleOnTransfer() {
     if (
@@ -39,26 +69,76 @@ export function TransferFunds() {
       return;
     }
 
+    // Final validation before sending
+    if (recipient && !validateSolanaAddress(recipient)) {
+      return;
+    }
+
     try {
-      const tokenMint =
-        token === "sol"
-          ? "not_supported_yet"
-          : "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-      const txn = await createTokenTransferTransaction(
-        wallet.getAddress(),
-        recipient,
-        tokenMint,
-        amount
-      );
+      setIsLoading(true);
+      const buildTransaction = (token: string) => {
+        if (token === "sol") {
+          return createSolTransferTransaction(
+            wallet.getAddress(),
+            recipient,
+            amount
+          );
+        }
+        const tokenMint =
+          token === "usdc"
+            ? "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+            : (() => {
+                throw new Error(`Invalid token: ${token}`);
+              })();
+        return createTokenTransferTransaction(
+          wallet.getAddress(),
+          recipient,
+          tokenMint,
+          amount
+        );
+      };
+      const txn = await buildTransaction(token);
+
       console.log({ txn });
 
-      const response = await wallet.sendTransaction({
+      const txHash = await wallet.sendTransaction({
         transaction: txn,
       });
 
-      console.log({ response });
+      console.log({ txHash });
+
+      if (txHash) {
+        const explorerUrl = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+        toast.success(
+          <div>
+            Transaction successful!{" "}
+            <a
+              href={explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View on Explorer
+            </a>
+          </div>,
+          {
+            duration: 5000,
+          }
+        );
+      }
+
+      setIsLoading(false);
     } catch (err) {
       console.error("Something went wrong", err);
+      toast.error(
+        <div>
+          Transaction failed: {(err as Error).message || "Unknown error"}
+        </div>,
+        {
+          duration: 5000,
+        }
+      );
+      setIsLoading(false);
     }
   }
 
@@ -77,8 +157,12 @@ export function TransferFunds() {
             <Input
               type="text"
               placeholder="Enter wallet address"
-              onChange={(e) => setRecipient(e.target.value)}
+              onChange={handleRecipientChange}
+              className={addressError ? "border-red-500" : ""}
             />
+            {addressError && (
+              <p className="text-red-500 text-sm mt-1">{addressError}</p>
+            )}
           </div>
 
           <div className="flex gap-4">
@@ -113,8 +197,14 @@ export function TransferFunds() {
         </div>
       </CardContent>
       <CardFooter className="flex">
-        <Button className="w-full" onClick={handleOnTransfer}>
-          Transfer
+        <Button
+          className="w-full"
+          onClick={handleOnTransfer}
+          disabled={
+            isLoading || !!addressError || !recipient || !token || !amount
+          }
+        >
+          {isLoading ? "Sending..." : "Transfer"}
         </Button>
       </CardFooter>
     </Card>

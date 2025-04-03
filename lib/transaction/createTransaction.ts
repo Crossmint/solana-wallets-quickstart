@@ -3,6 +3,8 @@ import {
   PublicKey,
   VersionedTransaction,
   Connection,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import {
   createTransferInstruction,
@@ -15,6 +17,32 @@ import {
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
 /* TODO: Soon to be replaced by the Crossmint SDK */
+export async function createSolTransferTransaction(
+  from: string,
+  to: string,
+  amount: number
+) {
+  const fromPublicKey = new PublicKey(from);
+  const toPublicKey = new PublicKey(to);
+  const amountInBaseUnits = amount * LAMPORTS_PER_SOL;
+
+  const instructions = [
+    SystemProgram.transfer({
+      fromPubkey: fromPublicKey,
+      toPubkey: toPublicKey,
+      lamports: amountInBaseUnits,
+    }),
+  ];
+
+  const message = new TransactionMessage({
+    instructions,
+    recentBlockhash: "11111111111111111111111111111111",
+    payerKey: new PublicKey("11111111111111111111111111111112"),
+  }).compileToV0Message();
+
+  return new VersionedTransaction(message);
+}
+
 export async function createTokenTransferTransaction(
   from: string,
   to: string,
