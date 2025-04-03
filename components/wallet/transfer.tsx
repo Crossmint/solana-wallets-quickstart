@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
+import { ChevronDown } from "lucide-react";
+import { PublicKey } from "@solana/web3.js";
 import {
   Card,
   CardContent,
@@ -19,14 +21,28 @@ import {
 } from "../ui/dropdown-menu";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { ChevronDown } from "lucide-react";
-import { createTokenTransferTransaction } from "@/lib/transaction/createTransaction";
+import {
+  createSolTransferTransaction,
+  createTokenTransferTransaction,
+} from "@/lib/transaction/createTransaction";
+import { AuthenticatedCard } from "../ui/crossmint/auth-card";
+
+const isSolanaAddressValid = (address: string) => {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
 export function TransferFunds() {
   const { wallet, type } = useWallet();
   const [token, setToken] = useState<"sol" | "usdc" | null>(null);
   const [recipient, setRecipient] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [txnHash, setTxnHash] = useState<string | null>(null);
 
   async function handleOnTransfer() {
     if (
@@ -39,31 +55,45 @@ export function TransferFunds() {
       return;
     }
 
-    try {
-      const tokenMint =
-        token === "sol"
-          ? "not_supported_yet"
-          : "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-      const txn = await createTokenTransferTransaction(
-        wallet.getAddress(),
-        recipient,
-        tokenMint,
-        amount
-      );
-      console.log({ txn });
+    // Validate Solana recipient address
+    if (token === "sol" && !isSolanaAddressValid(recipient)) {
+      alert("Invalid Solana recipient address");
+      return;
+    }
 
-      const response = await wallet.sendTransaction({
+    try {
+      setIsLoading(true);
+      const crossmintWalletAddress = wallet.getAddress();
+      function buildTransaction() {
+        return token === "sol"
+          ? createSolTransferTransaction(
+              crossmintWalletAddress,
+              recipient as string,
+              amount as number
+            )
+          : createTokenTransferTransaction(
+              crossmintWalletAddress,
+              recipient as string,
+              "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // USDC token mint
+              amount as number
+            );
+      }
+
+      const txn = await buildTransaction();
+      const txnHash = await wallet.sendTransaction({
         transaction: txn,
       });
 
-      console.log({ response });
+      setTxnHash(`https://solscan.io/tx/${txnHash}?cluster=devnet`);
     } catch (err) {
       console.error("Something went wrong", err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <Card>
+    <AuthenticatedCard>
       <CardHeader>
         <CardTitle>Transfer funds</CardTitle>
         <CardDescription className="flex items-center gap-2">
@@ -113,10 +143,26 @@ export function TransferFunds() {
         </div>
       </CardContent>
       <CardFooter className="flex">
-        <Button className="w-full" onClick={handleOnTransfer}>
-          Transfer
-        </Button>
+        <div className="flex flex-col gap-2 w-full">
+          <Button
+            className="w-full"
+            onClick={handleOnTransfer}
+            disabled={isLoading}
+          >
+            {isLoading ? "Transferring..." : "Transfer"}
+          </Button>
+          {txnHash && (
+            <a
+              href={txnHash}
+              className="text-sm text-muted-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on Solscan.io
+            </a>
+          )}
+        </div>
       </CardFooter>
-    </Card>
+    </AuthenticatedCard>
   );
 }

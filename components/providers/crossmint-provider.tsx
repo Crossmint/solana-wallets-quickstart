@@ -26,6 +26,7 @@ export function CrossmintProviderWrapper({
           type: "solana-smart-wallet",
           showPasskeyHelpers: true,
         }}
+        loginMethods={["web3:solana-only"]}
       >
         {children}
       </CrossmintAuthProvider>
