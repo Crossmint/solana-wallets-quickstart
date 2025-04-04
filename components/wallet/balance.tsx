@@ -3,18 +3,14 @@
 import * as React from "react";
 import Image from "next/image";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
-
+import { useQuery } from "@tanstack/react-query";
 import {
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { AuthenticatedCard } from "../ui/crossmint/auth-card";
-
-// TODO: Replace with the actual price, fetched from an API
-const SOL_TO_USD_TMP = 114.21;
 
 export function WalletBalance() {
   const { wallet, type } = useWallet();
@@ -31,6 +27,17 @@ export function WalletBalance() {
       // We use a polling strategy instead of cache invalidation because blockchain updates aren't immediate
       const triggerUpdate = query.state.dataUpdatedAt < Date.now() - 10000;
       return triggerUpdate ? 500 : 10000;
+    },
+  });
+
+  const { data: usdcConversionRate } = useQuery({
+    queryKey: ["usdc-conversion-rate"],
+    queryFn: async () => {
+      const response = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+      );
+      const data = await response.json();
+      return data.solana.usd;
     },
   });
 
@@ -51,7 +58,7 @@ export function WalletBalance() {
           $
           {(
             Number(formatBalance(usdcBalance, 6)) +
-            Number(formatBalance(solBalance, 9)) * SOL_TO_USD_TMP
+            Number(formatBalance(solBalance, 9)) * usdcConversionRate
           ).toFixed(2)}
         </CardDescription>
       </CardHeader>

@@ -2,6 +2,7 @@ import { CrossmintProviderWrapper } from "@/components/providers/crossmint-provi
 import { QueryProvider } from "@/components/providers/query-provider";
 import {
   CreateWallet,
+  DelegatedSigner,
   FundWallet,
   TransferFunds,
   WalletBalance,
@@ -16,6 +17,7 @@ export default function Home() {
           <WalletBalance />
           <FundWallet />
           <TransferFunds />
+          <DelegatedSigner />
         </div>
       </CrossmintProviderWrapper>
     </QueryProvider>

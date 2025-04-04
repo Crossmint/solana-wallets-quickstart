@@ -5,7 +5,6 @@ import { useWallet } from "@crossmint/client-sdk-react-ui";
 import { ChevronDown } from "lucide-react";
 import { PublicKey } from "@solana/web3.js";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,

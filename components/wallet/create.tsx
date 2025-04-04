@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
-
+import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,13 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Copy } from "lucide-react";
 
 export function CreateWallet() {
   const { logout, login } = useAuth();
   const { wallet, status } = useWallet();
 
-  // @ts-expect-error wallet isn't typed correctly for this new field
+  // @ts-expect-error TODO: wallet isn't typed correctly for this new field
   const externalWalletAddress = wallet?.adminSigner?.address;
   const crossmintWalletAddress = wallet?.getAddress();
 
