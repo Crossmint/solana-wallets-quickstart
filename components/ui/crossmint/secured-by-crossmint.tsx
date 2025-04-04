@@ -1,15 +1,8 @@
-import { cn } from "@/lib/utils";
 import { SecuredByLeaf } from "./crossmint-leaf";
 
-export function SecuredByCrossmint({
-  color = "#67797F",
-  className,
-}: {
-  color?: string;
-  className?: string;
-}) {
+export function SecuredByCrossmint({ color = "#67797F" }: { color?: string }) {
   return (
-    <div className={cn("flex", className)}>
+    <div className="flex">
       <SecuredByLeaf color={color} />
     </div>
   );

@@ -16,7 +16,6 @@ export function Header() {
           </div>
           <div>
             <h1 className="text-xl font-medium">{siteConfig.title}</h1>
-            <p className="text-sm text-gray-500">{siteConfig.description}</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 export const siteConfig = {
-  title: "SSW Quickstart",
-  description: "Solana Smart Wallet Quickstart",
+  title: "Solana Smart Wallet Quickstart",
   footer: {
     links: [
       {
