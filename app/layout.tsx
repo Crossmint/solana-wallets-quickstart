@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
-import { Header } from "@/components/ui/header";
-import { Footer } from "@/components/ui/footer";
-import { siteConfig } from "@/config/site";
+import { Providers } from "@/app/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: siteConfig.title,
-  description: siteConfig.title,
+  title: "Solana Wallets Quickstart",
+  description: "A quickstart for the Solana Wallets",
 };
 
 export default function RootLayout({
@@ -27,15 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="mx-auto h-screen flex flex-col">
-          <Header />
-          {children}
-          <Footer />
-        </div>
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>

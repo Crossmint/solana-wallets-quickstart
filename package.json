@@ -1,5 +1,5 @@
 {
-  "name": "nextjs",
+  "name": "solana-wallets-quickstart",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,6 @@
     "@solana/web3.js": "^1.98.0",
     "@vercel/analytics": "^1.5.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.483.0",
     "next": "15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
