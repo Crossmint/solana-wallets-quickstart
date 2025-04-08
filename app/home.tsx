@@ -67,7 +67,7 @@ export function HomeContent() {
           <div className="flex flex-col gap-3">
             <div>
               <h2 className="text-lg font-medium">Your wallet</h2>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <p className="text-[15px] text-gray-500 truncate">
                   {walletAddress
                     ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(
