@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 
 export function DelegatedSigner() {
   const { wallet, type } = useWallet();
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>(
+    "Allow other signers to sign transactions on behalf of the wallet."
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [delegatedSignerOutput, setDelegatedSignerOutput] = useState<any>(null);
   const [delegatedSignerInput, setDelegatedSignerInput] = useState<string>("");
@@ -21,17 +23,17 @@ export function DelegatedSigner() {
     }
     try {
       setIsLoading(true);
-      setStatus("Registering delegated signer...");
       const delegatedSignerData = await wallet.addDelegatedSigner(
         `solana-keypair:${delegatedSignerInput}`
       );
       setStatus("Successfully registered delegated signer!");
       setDelegatedSignerOutput(delegatedSignerData);
     } catch (err) {
-      console.error(err);
-      setStatus(
-        "Registration failed. Try again or use a different signer address."
-      );
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Try again or use a different signer address.";
+      alert("Delegated Signer: " + errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -41,13 +43,8 @@ export function DelegatedSigner() {
     <div className="bg-white flex flex-col gap-3 rounded-xl border shadow-sm p-5">
       <div>
         <h2 className="text-lg font-medium">Delegated Signer</h2>
-        {delegatedSignerOutput != null || isLoading ? null : (
-          <p className="text-sm text-gray-500">
-            Allow other signers to sign transactions on behalf of the wallet.
-          </p>
-        )}
+        {!isLoading && <p className="text-sm text-gray-500">{status}</p>}
       </div>
-      {status && <div className="text-sm text-gray-600 mb-2">{status}</div>}
       {delegatedSignerOutput && (
         <div className="mt-4 space-y-3 bg-gray-50 p-4 rounded-md">
           <h3 className="font-medium text-md">Delegated Signer Details</h3>
@@ -157,12 +154,8 @@ export function DelegatedSigner() {
         onClick={handleDelegatedDemo}
         disabled={isLoading}
       >
-        {isLoading ? "Processing..." : "Perform Delegated Demo"}
+        {isLoading ? "Processing..." : "Add Delegated Signer"}
       </button>
-      <div className="text-xs text-gray-500">
-        You can only perform this action 10 times. Deleting delegated signers{" "}
-        <strong>coming soon.</strong>
-      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ export function HomeContent() {
   const { wallet, status: walletStatus } = useWallet();
   const { status, status: authStatus } = useAuth();
 
+  const walletAddress = wallet?.getAddress();
   const isLoggedIn = wallet != null && status === "logged-in";
   const isLoading =
     walletStatus === "in-progress" || authStatus === "initializing";
@@ -66,9 +67,39 @@ export function HomeContent() {
           <div className="flex flex-col gap-3">
             <div>
               <h2 className="text-lg font-medium">Your wallet</h2>
-              <p className="text-sm text-gray-500 truncate">
-                {wallet?.getAddress()}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[15px] text-gray-500 truncate">
+                  {walletAddress
+                    ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(
+                        -4
+                      )}`
+                    : ""}
+                </p>
+                <button
+                  onClick={() => {
+                    if (walletAddress) {
+                      navigator.clipboard.writeText(walletAddress);
+                      const button =
+                        document.activeElement as HTMLButtonElement;
+                      button.disabled = true;
+                      const originalContent = button.innerHTML;
+                      button.innerHTML = `<Image
+                        src="/check.svg"
+                        alt="Check"
+                        width={18}
+                        height={18}
+                      />`;
+                      setTimeout(() => {
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                      }, 2000);
+                    }
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <Image src="/copy.svg" alt="Copy" width={16} height={16} />
+                </button>
+              </div>
             </div>
             <WalletBalance />
           </div>
