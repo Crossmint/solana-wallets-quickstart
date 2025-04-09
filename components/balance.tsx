@@ -88,7 +88,7 @@ export function WalletBalance() {
           onClick={() => handleOnFund("usdc")}
           className="flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
         >
-          + Get 10 free test USDC
+          + Get free test USDC
         </button>
       </div>
     </div>
