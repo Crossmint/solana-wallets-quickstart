@@ -8,8 +8,6 @@ import { PopupWindow } from "@crossmint/client-sdk-window";
 export function WalletBalance() {
   const { wallet, type } = useWallet();
   const [data, setData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -34,7 +32,6 @@ export function WalletBalance() {
     data?.find((t) => t.token === "usdc")?.balances.total || "0";
 
   async function handleOnFund(token: "sol" | "usdc") {
-    setIsLoading(true);
     try {
       switch (token) {
         case "sol":
@@ -46,28 +43,16 @@ export function WalletBalance() {
           });
           break;
         case "usdc":
-          const response = await fetch(
-            `https://staging.crossmint.com/api/v1-alpha2/wallets/${wallet?.getAddress()}/balances`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": process.env.NEXT_PUBLIC_CROSSMINT_API_KEY!,
-              },
-              body: JSON.stringify({
-                amount: 10,
-                token: "usdc",
-              }),
-            }
-          );
-          const data = await response.json();
+          await PopupWindow.init("https://faucet.circle.com", {
+            awaitToLoad: false,
+            crossOrigin: true,
+            width: 550,
+            height: 700,
+          });
           break;
       }
     } catch (err) {
       console.error("Error funding wallet " + token + " - " + err);
-    } finally {
-      setIsLoading(false);
-      setStatus("Refresh page to view updated balance.");
     }
   }
 
@@ -96,18 +81,15 @@ export function WalletBalance() {
         <button
           onClick={() => handleOnFund("sol")}
           className="flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-          disabled={isLoading}
         >
           + Get free test SOL
         </button>
         <button
           onClick={() => handleOnFund("usdc")}
           className="flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-          disabled={isLoading}
         >
           + Get 10 free test USDC
         </button>
-        {status && <p className="text-sm text-gray-500">{status}</p>}
       </div>
     </div>
   );
