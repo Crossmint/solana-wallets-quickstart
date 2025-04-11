@@ -68,7 +68,7 @@ export function HomeContent() {
             <div>
               <h2 className="text-lg font-medium">Your wallet</h2>
               <div className="flex items-center gap-2">
-                <p className="text-[15px] text-gray-500 truncate">
+                <p className="text-[15px] text-gray-500">
                   {walletAddress
                     ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(
                         -4
@@ -83,12 +83,7 @@ export function HomeContent() {
                         document.activeElement as HTMLButtonElement;
                       button.disabled = true;
                       const originalContent = button.innerHTML;
-                      button.innerHTML = `<Image
-                        src="/check.svg"
-                        alt="Check"
-                        width={18}
-                        height={18}
-                      />`;
+                      button.innerHTML = `<img src="/check.svg" alt="Check" width="16" height="16" />`;
                       setTimeout(() => {
                         button.innerHTML = originalContent;
                         button.disabled = false;

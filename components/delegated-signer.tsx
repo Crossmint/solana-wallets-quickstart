@@ -1,17 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useWallet } from "@crossmint/client-sdk-react-ui";
+import { useEffect, useState } from "react";
+import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function DelegatedSigner() {
   const { wallet, type } = useWallet();
+  const { jwt } = useAuth();
   const [status, setStatus] = useState<string>(
     "Allow other signers to sign transactions on behalf of the wallet."
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [delegatedSignerOutput, setDelegatedSignerOutput] = useState<any>(null);
+  const [delegatedSignerOutput, setDelegatedSignerOutput] = useState<any>([]);
   const [delegatedSignerInput, setDelegatedSignerInput] = useState<string>("");
+
+  // TODO: remove when wallets sdk version bumps
+  const fetchDelegatedSigners = async () => {
+    try {
+      const walletResponse = await fetch(
+        "https://staging.crossmint.com/api/2022-06-09/wallets/me:solana-smart-wallet",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || "",
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+      const meWallet = await walletResponse.json();
+      const signers = meWallet.config?.delegatedSigners ?? [];
+      setDelegatedSignerOutput(signers);
+    } catch (err) {
+      console.error("Error fetching delegated signers:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDelegatedSigners();
+  }, [wallet, jwt]);
 
   const handleDelegatedDemo = async () => {
     if (wallet == null || type !== "solana-smart-wallet") {
@@ -23,11 +50,9 @@ export function DelegatedSigner() {
     }
     try {
       setIsLoading(true);
-      const delegatedSignerData = await wallet.addDelegatedSigner(
-        `solana-keypair:${delegatedSignerInput}`
-      );
+      await wallet.addDelegatedSigner(`solana-keypair:${delegatedSignerInput}`);
+      await fetchDelegatedSigners();
       setStatus("Successfully registered delegated signer!");
-      setDelegatedSignerOutput(delegatedSignerData);
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -45,104 +70,62 @@ export function DelegatedSigner() {
         <h2 className="text-lg font-medium">Delegated Signer</h2>
         {!isLoading && <p className="text-sm text-gray-500">{status}</p>}
       </div>
-      {delegatedSignerOutput && (
-        <div className="mt-4 space-y-3 bg-gray-50 p-4 rounded-md">
-          <h3 className="font-medium text-md">Delegated Signer Details</h3>
-          <div className="grid grid-cols-[120px_1fr] gap-1 text-sm">
-            <div className="font-medium">Type:</div>
-            <div>{delegatedSignerOutput.type}</div>
-            <div className="font-medium">Address:</div>
-            <div className="break-all">
-              {delegatedSignerOutput.locator?.split(":")?.[1] || "N/A"}
-            </div>
-            {delegatedSignerOutput.transaction && (
-              <>
-                <div className="font-medium">Status:</div>
-                <div className="capitalize">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      delegatedSignerOutput.transaction.status === "success"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+      {delegatedSignerOutput.length > 0 && (
+        <div className="bg-gray-50 py-2 px-3 rounded-md">
+          <p className="text-xs text-gray-500 mb-1.5">
+            {delegatedSignerOutput.length} signer
+            {delegatedSignerOutput.length !== 1 ? "s" : ""} registered
+          </p>
+          {delegatedSignerOutput.length > 0 && (
+            <ul className="space-y-0.5">
+              {delegatedSignerOutput.map((signer: any, index: number) => (
+                <li
+                  key={index}
+                  className="flex items-center gap-2 bg-white px-2 py-1 rounded text-xs text-gray-600 border border-gray-100"
+                >
+                  {(() => {
+                    const address = signer.locator?.split(":")?.[1];
+                    if (!address || address === "N/A") return "N/A";
+                    const length = address.length;
+                    if (length <= 8) return address;
+                    return `${address.substring(0, 4)}...${address.substring(
+                      length - 4
+                    )}`;
+                  })()}
+                  <button
+                    onClick={() => {
+                      const address = signer.locator?.split(":")?.[1];
+                      if (address && address !== "N/A") {
+                        navigator.clipboard.writeText(address);
+                        const button =
+                          document.activeElement as HTMLButtonElement;
+                        button.disabled = true;
+                        const originalContent = button.innerHTML;
+                        button.innerHTML = `<img src="/check.svg" alt="Check" width="12" height="12" />`;
+                        setTimeout(() => {
+                          button.innerHTML = originalContent;
+                          button.disabled = false;
+                        }, 2000);
+                      }
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
                   >
-                    {delegatedSignerOutput.transaction.status}
-                  </span>
-                </div>
-                <div className="font-medium">Created:</div>
-                <div>
-                  {new Date(
-                    delegatedSignerOutput.transaction.createdAt
-                  ).toLocaleString()}
-                </div>
-                {delegatedSignerOutput.transaction.onChain?.txId && (
-                  <>
-                    <div className="font-medium">Transaction ID:</div>
-                    <div className="break-all">
-                      <a
-                        href={`https://solscan.io/tx/${delegatedSignerOutput.transaction.onChain.txId}?cluster=devnet`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {delegatedSignerOutput.transaction.onChain.txId.substring(
-                          0,
-                          12
-                        )}
-                        ...
-                      </a>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-          {delegatedSignerOutput.transaction?.approvals && (
-            <div className="mt-2">
-              <div className="font-medium text-sm mb-1">Approvals:</div>
-              <div className="text-xs bg-gray-100 p-2 rounded overflow-y-auto">
-                <div>
-                  Required:{" "}
-                  {delegatedSignerOutput.transaction.approvals.required}
-                </div>
-                <div>
-                  Submitted:{" "}
-                  {delegatedSignerOutput.transaction.approvals.submitted.length}
-                </div>
-
-                {delegatedSignerOutput.transaction.approvals.submitted.map(
-                  (approval: any, i: number) => (
-                    <div
-                      key={i}
-                      className="mt-1 pl-2 border-l-2 border-gray-300"
-                    >
-                      <div>
-                        Signer:{" "}
-                        {approval.signer.split(":")?.[1] || approval.signer}
-                      </div>
-                      <div>
-                        Time: {new Date(approval.submittedAt).toLocaleString()}
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
+                    <Image src="/copy.svg" alt="Copy" width={12} height={12} />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}
       <div className="flex flex-col gap-2">
-        {delegatedSignerOutput == null ? (
-          <>
-            <label className="text-sm font-medium">Delegated Signer</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-md text-sm"
-              placeholder="Ex: 5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWr8"
-              onChange={(e) => setDelegatedSignerInput(e.target.value)}
-            />
-          </>
-        ) : null}
+        <label className="text-sm font-medium">Add a Delegated Signer</label>
+        <input
+          type="text"
+          className="w-full px-3 py-2 border rounded-md text-sm"
+          placeholder="Ex: 5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWr8"
+          onChange={(e) => setDelegatedSignerInput(e.target.value)}
+        />
       </div>
       <button
         className={cn(
