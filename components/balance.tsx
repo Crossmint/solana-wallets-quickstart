@@ -1,59 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
 import { airdropUsingConnection } from "@/lib/faucet";
 import { PublicKey } from "@solana/web3.js";
-
-type WalletDemoBalances = {
-  token: "sol" | "usdc";
-  decimals: number;
-  balances: {
-    total: string;
-  };
-}[];
+import { useBalance } from "@/lib/balanceContext";
+import { useState } from "react";
 
 export function WalletBalance() {
-  const { wallet, type } = useWallet();
-  const [balances, setBalances] = useState<WalletDemoBalances>([]);
+  const { wallet } = useWallet();
+  const { balances, formatBalance } = useBalance();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isAirdropping, setIsAirdropping] = useState(false);
-
-  useEffect(() => {
-    async function fetchBalances() {
-      if (!wallet || type !== "solana-smart-wallet") return;
-      try {
-        const fetchedBalances = (await wallet.getBalances([
-          "sol",
-          "usdc",
-        ])) as WalletDemoBalances;
-        const getTokenBalance = async (
-          token: string,
-          balances: WalletDemoBalances
-        ) => {
-          return balances.find((t) => t.token === token)?.balances.total;
-        };
-        if (
-          getTokenBalance("sol", fetchedBalances) !==
-            getTokenBalance("sol", balances) ||
-          getTokenBalance("usdc", fetchedBalances) !==
-            getTokenBalance("usdc", balances)
-        ) {
-          setBalances(fetchedBalances || []);
-        }
-      } catch (error) {
-        console.error("Error fetching wallet balances:", error);
-      }
-    }
-    fetchBalances();
-
-    // Set up interval to refresh balances every 5 seconds
-    const intervalId = setInterval(fetchBalances, 5000);
-
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [wallet, type]);
 
   const handleAirdrop = async () => {
     if (!wallet?.address) return;
@@ -68,10 +26,6 @@ export function WalletBalance() {
     } finally {
       setIsAirdropping(false);
     }
-  };
-
-  const formatBalance = (balance: string, decimals: number) => {
-    return (Number(balance) / 10 ** decimals).toFixed(2);
   };
 
   const solBalance =

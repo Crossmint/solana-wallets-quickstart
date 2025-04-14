@@ -4,6 +4,7 @@ import {
   CrossmintProvider,
   CrossmintAuthProvider,
 } from "@crossmint/client-sdk-react-ui";
+import { BalanceProvider } from "@/lib/balanceContext";
 
 if (!process.env.NEXT_PUBLIC_CROSSMINT_API_KEY) {
   throw new Error("NEXT_PUBLIC_CROSSMINT_API_KEY is not set");
@@ -21,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }}
         loginMethods={["web3:solana-only"]}
       >
-        {children}
+        <BalanceProvider>{children}</BalanceProvider>
       </CrossmintAuthProvider>
     </CrossmintProvider>
   );
