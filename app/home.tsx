@@ -1,6 +1,10 @@
 "use client";
 
-import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
+import {
+  type SolanaSmartWallet,
+  useAuth,
+  useWallet,
+} from "@crossmint/client-sdk-react-ui";
 import Image from "next/image";
 import { WalletBalance } from "@/components/balance";
 import { TransferFunds } from "@/components/transfer";
@@ -9,8 +13,10 @@ import { LogoutButton } from "@/components/logout";
 import { LoginButton } from "@/components/login";
 
 export function HomeContent() {
-  const { wallet, status: walletStatus } = useWallet();
+  const { wallet: walletUnparsed, status: walletStatus } = useWallet();
   const { status, status: authStatus } = useAuth();
+  const wallet = walletUnparsed as SolanaSmartWallet;
+  const adminSigner = wallet?.adminSigner?.address;
 
   const walletAddress = wallet?.address;
   const isLoggedIn = wallet != null && status === "logged-in";
@@ -76,6 +82,7 @@ export function HomeContent() {
                     : ""}
                 </p>
                 <button
+                  type="button"
                   onClick={() => {
                     if (walletAddress) {
                       navigator.clipboard.writeText(walletAddress);
@@ -95,7 +102,48 @@ export function HomeContent() {
                   <Image src="/copy.svg" alt="Copy" width={16} height={16} />
                 </button>
               </div>
+              {adminSigner && (
+                <>
+                  <div className="h-px bg-gray-100 my-2" />
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-gray-400">Admin Signer</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[15px] text-gray-500">
+                        {`${adminSigner.slice(0, 4)}...${adminSigner.slice(
+                          -4
+                        )}`}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (adminSigner) {
+                            navigator.clipboard.writeText(adminSigner);
+                            const button =
+                              document.activeElement as HTMLButtonElement;
+                            button.disabled = true;
+                            const originalContent = button.innerHTML;
+                            button.innerHTML = `<img src="/check.svg" alt="Check" width="16" height="16" />`;
+                            setTimeout(() => {
+                              button.innerHTML = originalContent;
+                              button.disabled = false;
+                            }, 2000);
+                          }
+                        }}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <Image
+                          src="/copy.svg"
+                          alt="Copy"
+                          width={16}
+                          height={16}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
+            <h3 className="font-medium">Wallet Balance</h3>
             <WalletBalance />
           </div>
           <LogoutButton />

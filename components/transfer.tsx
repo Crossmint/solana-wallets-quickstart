@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import {
   createSolTransferTransaction,
   createTokenTransferTransaction,
 } from "@/lib/createTransaction";
+import type { TransactionHistoryRef } from "./transaction-history";
+import { TransactionHistory } from "./transaction-history";
 
 const isSolanaAddressValid = (address: string) => {
   try {
@@ -23,47 +25,66 @@ export function TransferFunds() {
   const [recipient, setRecipient] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [txnHash, setTxnHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const transactionHistoryRef = useRef<TransactionHistoryRef>(null);
 
   async function handleOnTransfer() {
     if (
-      wallet == null ||
-      token == null ||
+      !wallet ||
+      !token ||
       type !== "solana-smart-wallet" ||
-      recipient == null ||
-      amount == null
+      !recipient ||
+      !amount
     ) {
-      alert("Transfer: missing required fields");
+      setError("Missing required fields");
       return;
     }
 
     // Validate Solana recipient address
     if (token === "sol" && !isSolanaAddressValid(recipient)) {
-      alert("Transfer: Invalid Solana recipient address");
+      setError("Invalid Solana recipient address");
       return;
     }
 
+    // Prevent transfers to admin signer
+    if (wallet.adminSigner?.address === recipient) {
+      setError("Cannot transfer to admin signer address");
+      return;
+    }
+
+    setError(null);
     try {
       setIsLoading(true);
-      function buildTransaction() {
-        return token === "sol"
-          ? createSolTransferTransaction(wallet?.address!, recipient!, amount!)
-          : createTokenTransferTransaction(
-              wallet?.address!,
-              recipient!,
+      const txn =
+        token === "sol"
+          ? await createSolTransferTransaction(
+              wallet.address,
+              recipient,
+              amount
+            )
+          : await createTokenTransferTransaction(
+              wallet.address,
+              recipient,
               "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // USDC token mint
-              amount!
+              amount
             );
-      }
 
-      const txn = await buildTransaction();
       const txnHash = await wallet.sendTransaction({
         transaction: txn,
       });
-      setTxnHash(`https://solscan.io/tx/${txnHash}?cluster=devnet`);
+
+      const explorerUrl = `https://solscan.io/tx/${txnHash}?cluster=devnet`;
+
+      // Add transaction to history
+      transactionHistoryRef.current?.addTransaction({
+        token,
+        recipient,
+        amount,
+        status: "success",
+        explorerUrl,
+      });
     } catch (err) {
-      // TODO: error returns with message?
-      alert("Transfer: " + err);
+      alert(`Transfer: ${err instanceof Error ? err.message : err}`);
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +99,9 @@ export function TransferFunds() {
       <div className="flex flex-col gap-3 w-full">
         <div className="flex gap-4">
           <div className="flex flex-col gap-2 flex-1">
-            <label className="text-sm font-medium">Token</label>
+            <label htmlFor="token" className="text-sm font-medium">
+              Token
+            </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -103,8 +126,11 @@ export function TransferFunds() {
             </div>
           </div>
           <div className="flex flex-col gap-2 flex-1">
-            <label className="text-sm font-medium">Amount</label>
+            <label htmlFor="amount" className="text-sm font-medium">
+              Amount
+            </label>
             <input
+              id="amount"
               type="number"
               className="w-full px-3 py-2 border rounded-md text-sm"
               placeholder="0.00"
@@ -113,17 +139,29 @@ export function TransferFunds() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Recipient wallet</label>
+          <label htmlFor="recipient" className="text-sm font-medium">
+            Recipient wallet
+          </label>
           <input
+            id="recipient"
             type="text"
-            className="w-full px-3 py-2 border rounded-md text-sm"
+            className={`w-full px-3 py-2 border rounded-md text-sm ${
+              error
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : ""
+            }`}
             placeholder="Enter wallet address"
-            onChange={(e) => setRecipient(e.target.value)}
+            onChange={(e) => {
+              setRecipient(e.target.value);
+              setError(null);
+            }}
           />
+          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
       </div>
       <div className="flex flex-col gap-2 w-full">
         <button
+          type="button"
           className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             isLoading
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
@@ -134,17 +172,8 @@ export function TransferFunds() {
         >
           {isLoading ? "Transferring..." : "Transfer"}
         </button>
-        {txnHash && !isLoading && (
-          <a
-            href={txnHash}
-            className="text-sm text-gray-500 text-center"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            → View on Solscan (refresh to update balance)
-          </a>
-        )}
       </div>
+      <TransactionHistory ref={transactionHistoryRef} />
     </div>
   );
 }
