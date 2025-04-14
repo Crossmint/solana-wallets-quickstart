@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  type SolanaSmartWallet,
-  useAuth,
-  useWallet,
-} from "@crossmint/client-sdk-react-ui";
+import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
 import Image from "next/image";
 import { WalletBalance } from "@/components/balance";
 import { TransferFunds } from "@/components/transfer";
@@ -17,7 +13,6 @@ export function HomeContent() {
   const { status, status: authStatus } = useAuth();
 
   const walletAddress = wallet?.address;
-  const adminSigner = (wallet as SolanaSmartWallet)?.adminSigner?.address;
   const isLoggedIn = wallet != null && status === "logged-in";
   const isLoading =
     walletStatus === "in-progress" || authStatus === "initializing";
@@ -100,47 +95,6 @@ export function HomeContent() {
                   <Image src="/copy.svg" alt="Copy" width={16} height={16} />
                 </button>
               </div>
-              {adminSigner && (
-                <>
-                  <div className="h-px bg-gray-100 my-2" />
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs text-gray-400">Admin Signer</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-[15px] text-gray-500">
-                        {`${adminSigner.slice(0, 4)}...${adminSigner.slice(
-                          -4
-                        )}`}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (adminSigner) {
-                            navigator.clipboard.writeText(adminSigner);
-                            const button =
-                              document.activeElement as HTMLButtonElement;
-                            button.disabled = true;
-                            const originalContent = button.innerHTML;
-                            button.innerHTML = `<img src="/check.svg" alt="Check" width="16" height="16" />`;
-                            setTimeout(() => {
-                              button.innerHTML = originalContent;
-                              button.disabled = false;
-                            }, 2000);
-                          }
-                        }}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <Image
-                          src="/copy.svg"
-                          alt="Copy"
-                          width={16}
-                          height={16}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="h-px bg-gray-100 my-2" />
-                </>
-              )}
             </div>
             <WalletBalance />
           </div>

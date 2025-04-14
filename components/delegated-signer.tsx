@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth, useWallet } from "@crossmint/client-sdk-react-ui";
+import {
+  type DelegatedSigner,
+  useAuth,
+  useWallet,
+} from "@crossmint/client-sdk-react-ui";
 import { cn } from "@/lib/utils";
 
 export function DelegatedSigner() {
@@ -9,8 +13,9 @@ export function DelegatedSigner() {
   const { jwt } = useAuth();
 
   const [isLoading, setIsLoading] = useState(false);
-  // TODO: delegatedSigners should be typed
-  const [delegatedSigners, setDelegatedSigners] = useState<any[]>([]);
+  const [delegatedSigners, setDelegatedSigners] = useState<DelegatedSigner[]>(
+    []
+  );
   const [newSigner, setNewSigner] = useState<string>("");
 
   useEffect(() => {
@@ -86,7 +91,7 @@ export function DelegatedSigner() {
           {delegatedSigners.length > 0 && (
             <div className="overflow-x-auto bg-white p-1 rounded border border-gray-100">
               <ul className="flex flex-col gap-1">
-                {delegatedSigners.map((signer: any, index: number) => (
+                {delegatedSigners.map((signer, index) => (
                   <li
                     key={index}
                     className="whitespace-nowrap px-2 py-1 rounded text-xs text-gray-600"

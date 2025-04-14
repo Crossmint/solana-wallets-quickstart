@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@crossmint/client-sdk-react-ui": "~1.17.4",
+    "@crossmint/client-sdk-react-ui": "~1.17.5",
     "@solana/spl-token": "~0.4.13",
     "@solana/web3.js": "~1.98.0",
     "clsx": "^2.1.1",
