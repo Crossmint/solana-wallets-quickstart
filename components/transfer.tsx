@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useBalance } from "@/lib/balanceContext";
+import { Toast } from "./toast";
 
 const isSolanaAddressValid = (address: string) => {
   try {
@@ -216,6 +217,7 @@ export function TransferFunds() {
   const { wallet, type } = useWallet();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTransfer = async (
     token: "sol" | "usdc",
@@ -265,8 +267,10 @@ export function TransferFunds() {
         ...prev,
       ]);
     } catch (err) {
-      throw new Error(
-        `Transfer failed: ${err instanceof Error ? err.message : err}`
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.log("errorMessage", errorMessage);
+      setError(
+        `Token transfer failed. Please ensure the transaction is signed with your admin signer address: ${wallet.adminSigner?.address}`
       );
     }
   };
@@ -277,6 +281,7 @@ export function TransferFunds() {
 
   return (
     <div className="bg-white flex flex-col h-full rounded-xl border shadow-sm p-5">
+      {error && <Toast message={error} onClose={() => setError(null)} />}
       <div>
         <h2 className="text-lg font-medium">Transfer Funds</h2>
         <p className="text-sm text-gray-500">Send funds to another wallet</p>
