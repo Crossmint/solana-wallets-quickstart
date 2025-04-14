@@ -26,6 +26,10 @@ export function LoginButton() {
       >
         Connect wallet
       </button>
+      <p className="text-xs text-gray-500 mt-2 text-center">
+        Note: If you've created a wallet before in this same app, please ensure
+        you're using the same browser wallet for authentication.
+      </p>
       {error && <Toast message={error} />}
     </>
   );
