@@ -12,6 +12,10 @@ import Image from "next/image";
 import { useBalance } from "@/lib/balanceContext";
 import { Toast } from "./toast";
 
+const USDC_MINT =
+  process.env.NEXT_PUBLIC_USDC_TOKEN_MINT ||
+  "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
+
 const isSolanaAddressValid = (address: string) => {
   try {
     new PublicKey(address);
@@ -244,7 +248,7 @@ export function TransferFunds() {
           : await createTokenTransferTransaction(
               wallet.address,
               recipient,
-              "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // USDC token mint
+              USDC_MINT,
               amount
             );
 
